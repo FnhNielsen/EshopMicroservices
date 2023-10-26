@@ -1,0 +1,10 @@
+dk/sdu/product_service/dto/ProductDto.class
+dk/sdu/product_service/mapper/ProductDtoMapper.class
+dk/sdu/product_service/model/Product$ProductBuilder.class
+dk/sdu/product_service/model/Product.class
+dk/sdu/product_service/model/Brand$BrandBuilder.class
+dk/sdu/product_service/repository/ProductRepository.class
+dk/sdu/product_service/ProductService.class
+dk/sdu/product_service/ProductServiceApplication.class
+dk/sdu/product_service/controller/ProductController.class
+dk/sdu/product_service/model/Brand.class

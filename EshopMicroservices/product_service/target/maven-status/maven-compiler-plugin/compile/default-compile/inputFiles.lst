@@ -1,0 +1,8 @@
+/Users/frederiknielsen/uni/6thsem/EshopMicroservices/EshopMicroservices/product_service/src/main/java/dk/sdu/product_service/controller/ProductController.java
+/Users/frederiknielsen/uni/6thsem/EshopMicroservices/EshopMicroservices/product_service/src/main/java/dk/sdu/product_service/dto/ProductDto.java
+/Users/frederiknielsen/uni/6thsem/EshopMicroservices/EshopMicroservices/product_service/src/main/java/dk/sdu/product_service/ProductService.java
+/Users/frederiknielsen/uni/6thsem/EshopMicroservices/EshopMicroservices/product_service/src/main/java/dk/sdu/product_service/mapper/ProductDtoMapper.java
+/Users/frederiknielsen/uni/6thsem/EshopMicroservices/EshopMicroservices/product_service/src/main/java/dk/sdu/product_service/model/Product.java
+/Users/frederiknielsen/uni/6thsem/EshopMicroservices/EshopMicroservices/product_service/src/main/java/dk/sdu/product_service/repository/ProductRepository.java
+/Users/frederiknielsen/uni/6thsem/EshopMicroservices/EshopMicroservices/product_service/src/main/java/dk/sdu/product_service/model/Brand.java
+/Users/frederiknielsen/uni/6thsem/EshopMicroservices/EshopMicroservices/product_service/src/main/java/dk/sdu/product_service/ProductServiceApplication.java
