@@ -32,7 +32,7 @@ services:
     expose:
       - "27017"
     volumes:
-      - ./mongo-product-service-data:/data/db
+      - ./mongo-data/product-service-data:/data/db
     networks:
       - default
 
@@ -43,7 +43,7 @@ services:
     expose:
       - "27018"
     volumes:
-      - ./mongo-inventory-service-data:/data/db
+      - ./mongo-data/inventory-service-data:/data/db
     networks:
       - default
 

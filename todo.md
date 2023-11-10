@@ -1,5 +1,4 @@
-### Project structure todo
+### Project structure
 
 - [ ] Create new project
-- [ ] Add product service as module
-- [ ] Remove old project and service
+- [ ] Add service/project as module

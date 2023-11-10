@@ -49,17 +49,17 @@ public class InventoryService {
     }
 
     public void updateInventory(InventoryDto inventoryDto) {
-        // Validate that the provided DTO has a non-null and non-empty ID
+        // Validate that inventory products has a non-null and non-empty ID
         if (inventoryDto.getId() == null || inventoryDto.getId().isEmpty()) {
             throw new IllegalArgumentException("ID cannot be null or empty for updating inventory");
         }
 
         // Fetch the existing entity from the database
-        var existingInventoryOptional = inventoryRepository.findById(inventoryDto.getId());
+        var inventoryById = inventoryRepository.findById(inventoryDto.getId());
 
-        if (existingInventoryOptional.isPresent()) {
+        if (inventoryById.isPresent()) {
             // Update the existing entity with the values from the DTO
-            Inventory existingInventory = existingInventoryOptional.get();
+            Inventory existingInventory = inventoryById.get();
             existingInventory.setName(inventoryDto.getName());
             existingInventory.setDescription(inventoryDto.getDescription());
             existingInventory.setPrice(inventoryDto.getPrice());
