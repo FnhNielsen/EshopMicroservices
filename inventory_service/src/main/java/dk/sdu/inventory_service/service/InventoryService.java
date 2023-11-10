@@ -30,7 +30,8 @@ public class InventoryService {
     }
 
     public void addToInventory(InventoryDto inventoryDto){
-        Inventory inventory = Inventory.builder().name(inventoryDto.getName())
+        Inventory inventory = Inventory.builder()
+                .name(inventoryDto.getName())
                 .description(inventoryDto.getDescription())
                 .price(inventoryDto.getPrice())
                 .stock(inventoryDto.getStock())
@@ -46,4 +47,32 @@ public class InventoryService {
         inventoryRepository.deleteById(id);
         log.info("Product {} removed from inventory", inventory.getId());
     }
+
+    public void updateInventory(InventoryDto inventoryDto) {
+        // Validate that the provided DTO has a non-null and non-empty ID
+        if (inventoryDto.getId() == null || inventoryDto.getId().isEmpty()) {
+            throw new IllegalArgumentException("ID cannot be null or empty for updating inventory");
+        }
+
+        // Fetch the existing entity from the database
+        var existingInventoryOptional = inventoryRepository.findById(inventoryDto.getId());
+
+        if (existingInventoryOptional.isPresent()) {
+            // Update the existing entity with the values from the DTO
+            Inventory existingInventory = existingInventoryOptional.get();
+            existingInventory.setName(inventoryDto.getName());
+            existingInventory.setDescription(inventoryDto.getDescription());
+            existingInventory.setPrice(inventoryDto.getPrice());
+            existingInventory.setStock(inventoryDto.getStock());
+            existingInventory.setBikeType(inventoryDto.getBikeType());
+
+            // Save the updated entity back to the database
+            inventoryRepository.save(existingInventory);
+
+            log.info("Updated product {} in inventory", existingInventory.getId());
+        } else {
+            throw new IllegalArgumentException("No product found with ID: " + inventoryDto.getId());
+        }
+    }
+
 }

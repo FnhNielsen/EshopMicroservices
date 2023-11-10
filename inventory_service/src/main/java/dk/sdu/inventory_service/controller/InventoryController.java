@@ -38,4 +38,11 @@ public class InventoryController {
     public void deleteProductFromInventory (@PathVariable String id){
         inventoryService.deleteFromInventory(id);
     }
+
+    @PatchMapping("/edit/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void updateProduct(@PathVariable String id,@RequestBody InventoryDto inventoryDto){
+        inventoryDto.setId(id);
+        inventoryService.updateInventory(inventoryDto);
+    }
 }
