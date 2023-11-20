@@ -47,5 +47,16 @@ services:
     networks:
       - default
 
+  redis-Cart_service:
+    image: redis:7.2.3-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: [ "CMD", "nc", "-vz", "localhost", "6379" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 #networks:
 #  default:
