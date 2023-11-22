@@ -1,6 +1,7 @@
 package dk.sdu.cart_service.controller;
 
 import dk.sdu.cart_service.model.Reservation;
+import dk.sdu.cart_service.model.ReservationEvent;
 import io.dapr.client.DaprClient;
 import io.dapr.client.DaprClientBuilder;
 import io.dapr.client.domain.CloudEvent;
@@ -34,6 +35,11 @@ public class CartController {
         daprClient.saveState(redisStore,reservation.CustomerId, Reservation.class);
         var state = daprClient.getState(redisStore, reservation.CustomerId, Reservation.class);
         state.block().getValue();
+
+        for (var item: reservation.items) {
+            var reservationEvent = new ReservationEvent(reservation.CustomerId, item.quantity, item.productId);
+            daprClient.publishEvent(pubSubName,"On_Products_Reserved",reservationEvent);
+        }
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }
