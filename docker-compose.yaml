@@ -47,7 +47,7 @@ services:
     networks:
       - default
 
-  redis-Cart_service:
+  redis-cart_service:
     image: redis:7.2.3-alpine
     restart: always
     ports:

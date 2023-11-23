@@ -3,14 +3,11 @@ package dk.sdu.cart_service.controller;
 import dk.sdu.cart_service.model.Reservation;
 import dk.sdu.cart_service.model.ReservationEvent;
 import io.dapr.client.DaprClient;
-import io.dapr.client.DaprClientBuilder;
-import io.dapr.client.domain.CloudEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Mono;
 
 
 @RestController
@@ -29,15 +26,16 @@ public class CartController {
     @PostMapping(value = "/reserve")
     public ResponseEntity<String> addProductToBasket(@RequestBody(required = false) Reservation reservation, DaprClient daprClient)
     {
-        if (reservation.items.isEmpty()) {
+        if (reservation == null || reservation.getItems().isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        daprClient.saveState(redisStore,reservation.CustomerId, Reservation.class);
-        var state = daprClient.getState(redisStore, reservation.CustomerId, Reservation.class);
+
+        daprClient.saveState(redisStore,reservation.getCustomerId(), Reservation.class);
+        var state = daprClient.getState(redisStore, reservation.getCustomerId(), Reservation.class);
         state.block().getValue();
 
-        for (var item: reservation.items) {
-            var reservationEvent = new ReservationEvent(reservation.CustomerId, item.quantity, item.productId);
+        for (var item: reservation.getItems()) {
+            var reservationEvent = new ReservationEvent(reservation.getCustomerId(), item.getQuantity(), item.getProductId());
             daprClient.publishEvent(pubSubName,"On_Products_Reserved",reservationEvent);
         }
         return new ResponseEntity<>(HttpStatus.CREATED);

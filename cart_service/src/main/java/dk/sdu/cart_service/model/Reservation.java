@@ -10,6 +10,6 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 public class Reservation {
-    public String CustomerId;
+    public String customerId;
     public List<Item> items;
 }
