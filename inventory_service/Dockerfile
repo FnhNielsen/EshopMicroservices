@@ -5,7 +5,7 @@ FROM openjdk:17
 WORKDIR /app
 
 # Copy the jar file into our app
-COPY ./target/product_service-0.0.1-SNAPSHOT.jar /app
+COPY ./target/inventory_service-0.0.1-SNAPSHOT.jar /app
 
 
 # Exposing port 8080

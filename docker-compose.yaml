@@ -58,5 +58,20 @@ services:
       timeout: 5s
       retries: 5
 
+  zipkin:
+    image: "openzipkin/zipkin"
+    ports:
+      - "9411:9411"
+
+  cart-service:
+    build:
+      context: .
+      dockerfile: cart_service/Dockerfile
+    ports:
+      - "8005:80"
+    depends_on:
+      "kafka-broker":
+          condition: service_healthy
+
 #networks:
 #  default:
