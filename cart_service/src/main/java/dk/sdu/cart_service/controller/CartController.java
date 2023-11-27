@@ -29,7 +29,6 @@ public class CartController {
         if (reservation == null || reservation.getItems().isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-
         daprClient.saveState(redisStore,reservation.getCustomerId(), Reservation.class);
         var state = daprClient.getState(redisStore, reservation.getCustomerId(), Reservation.class);
         state.block().getValue();
