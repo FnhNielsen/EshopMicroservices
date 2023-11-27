@@ -17,8 +17,8 @@
 		<java.version>17</java.version>
 	</properties>
 	<modules>
-		<module>product_service</module>
 		<module>cart_service</module>
+		<module>product_service</module>
 		<module>inventory_service</module>
 	</modules>
 	<packaging>pom</packaging>
