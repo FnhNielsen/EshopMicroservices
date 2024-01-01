@@ -4,6 +4,8 @@ package dk.sdu.orderservice.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 
 @Getter
 @Setter
@@ -14,12 +16,14 @@ import lombok.*;
 @Table(name = "OrderProduct")
 public class OrderProduct {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public int id;
-    public String orderId;
-    public String productId;
-    public double price;
-    public int quantity;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int id;
+    private UUID orderId;
+    private String productId;
+    private double price;
+    private int quantity;
 
 
+    public OrderProduct(UUID orderId, String productId, double price, int quantity) {
+    }
 }
