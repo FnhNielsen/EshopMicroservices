@@ -4,11 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class CancelOrderDto {
-    public String orderId;
+    public UUID orderId;
     public String customerId;
     public int quantity;
 }

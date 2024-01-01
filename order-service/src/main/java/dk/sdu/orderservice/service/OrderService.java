@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.net.URI;
@@ -23,6 +24,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -41,9 +43,9 @@ public class OrderService {
 
 
 
-    public Optional<OrderDto> getOrder(String id) {
+    public Optional<OrderDto> getOrder(UUID id) {
         try {
-            Optional<Order> orderOptional = orderRepository.findById(id);
+            Optional<Order> orderOptional = orderRepository.findById(String.valueOf(id));
             if (orderOptional.isPresent()) {
                 Order order = orderOptional.get();
                 return Optional.of(orderDtoMapper.map(order));
@@ -57,8 +59,8 @@ public class OrderService {
         }
     }
 
-
-    public void addOrder(OrderDto orderDto) {
+    @Transactional
+    public Order addOrder(OrderDto orderDto) {
         if (orderDto == null || orderDto.getOrderId() == null || orderDto.getCustomerId() == null || orderDto.getOrderProducts() == null) {
             log.error("Invalid Order: {}", orderDto);
             throw new IllegalArgumentException("Invalid OrderDto: One or more required fields are null");
@@ -71,22 +73,22 @@ public class OrderService {
                     .orderProducts(orderDto.getOrderProducts())
                     .build();
 
-            orderRepository.save(order);
+            var orderToSave = orderRepository.save(order);
             log.info("Saved order {}", order.getOrderId());
-            CompletableFuture.completedFuture(orderDto);
+            return orderToSave;
         } catch (Exception e) {
             log.error("Error saving order: {}", e.getMessage(), e);
             throw new RuntimeException("Error saving order", e);
         }
     }
 
-    public void addProductToOrder(String orderId, OrderProductDto orderProductDto) {
+    public void addProductToOrder(UUID orderId, OrderProductDto orderProductDto) {
         try {
             if (orderExists(orderId)) {
                 OrderProduct orderProduct = OrderProduct.builder()
                         .id(orderProductDto.getId())
                         .productId(orderProductDto.getProductId())
-                        .orderId(orderProductDto.orderId = orderId)
+                        .orderId(orderProductDto.getOrderId())
                         .price(orderProductDto.getPrice())
                         .quantity(orderProductDto.getQuantity())
                         .build();
@@ -102,12 +104,12 @@ public class OrderService {
         }
     }
 
-    public void deleteOrder(String id) {
+    public void deleteOrder(UUID id) {
         try {
-            Optional<Order> orderOptional = orderRepository.findById(id);
+            Optional<Order> orderOptional = orderRepository.findById(String.valueOf(id));
             if (orderOptional.isPresent()) {
                 Order order = orderOptional.get();
-                orderRepository.deleteById(id);
+                orderRepository.deleteById(String.valueOf(id));
                 log.info("Order {} has been removed", order.getOrderId());
             } else {
                 log.error("Order with ID {} not found. Unable to delete.", id);
@@ -121,7 +123,7 @@ public class OrderService {
 
     public void updateOrderStatus(OrderDto orderDto) {
         try {
-            var orderToUpdate = orderRepository.findById(orderDto.getOrderId());
+            var orderToUpdate = orderRepository.findById(String.valueOf(orderDto.getOrderId()));
             if (orderToUpdate.isPresent()) {
                 Order order = orderToUpdate.get();
                 order.setOrderStatus(orderDto.getOrderStatus());
@@ -137,8 +139,8 @@ public class OrderService {
         }
     }
 
-    public boolean orderExists(String orderId) {
-        return orderRepository.existsById(orderId);
+    public boolean orderExists(UUID orderId) {
+        return orderRepository.existsById(String.valueOf(orderId));
     }
 
     public void addCustomer(Customer customerDto) {

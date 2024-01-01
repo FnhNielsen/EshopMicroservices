@@ -1,9 +1,7 @@
 package dk.sdu.orderservice.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.sdu.orderservice.dto.*;
 import dk.sdu.orderservice.mapper.OrderDtoMapper;
-import dk.sdu.orderservice.model.Customer;
 import dk.sdu.orderservice.model.Order;
 import dk.sdu.orderservice.model.OrderProduct;
 import dk.sdu.orderservice.service.OrderService;
@@ -13,19 +11,18 @@ import io.dapr.client.DaprClientBuilder;
 import io.dapr.client.domain.CloudEvent;
 import io.dapr.exceptions.DaprException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.mapper.Mapper;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
@@ -49,7 +46,7 @@ public class OrderController {
 
     @GetMapping(value = "/{orderId}")
     public Optional<OrderDto> getOrder(@PathVariable String orderId) {
-        var res = orderService.getOrder(orderId);
+        var res = orderService.getOrder(UUID.fromString(orderId));
         System.out.println(res);
         Hibernate.initialize(res);
         return ResponseEntity.ok().body(res).getBody();
@@ -67,20 +64,15 @@ public class OrderController {
     public Mono<ResponseEntity<String>> startOrder(@RequestBody CloudEvent<OrderEvent> cloudEvent) {
         return Mono.fromSupplier(() -> {
             var order = cloudEvent.getData();
-            var orderId = UUID.randomUUID().toString();
-            List<OrderProduct> orderProductList = new ArrayList<>();
-            int i = 0;
-            for (Item o : order.getItems()){
-                var orderToAdd = new OrderProduct(i,orderId,o.getProductId(),o.getPrice(),o.getQuantity());
-                orderProductList.add(orderToAdd);
-                i+=1;
-            }
+            var orderId = UUID.randomUUID();
+            List<OrderProduct> orderProductList = order.getItems().stream()
+                    .map(item -> new OrderProduct(orderId, item.getProductId(), item.getPrice(), item.getQuantity()))
+                    .collect(Collectors.toList());
+
             Order orderToSave = new Order(orderId, order.getCustomerId(), "Pending", orderProductList);
-            log.info("Created a new order with status Pending: " + orderToSave.getOrderId());
-            for (var product : orderToSave.getOrderProducts()) {
-                product.setOrderId(orderToSave.getOrderId());
-            }
-            OrderDto dto = new OrderDto(orderId,order.getCustomerId(), orderToSave.orderStatus, orderToSave.getOrderProducts());
+            log.info("Created a new order with status Pending: {}", orderToSave.getOrderId());
+
+            OrderDto dto = new OrderDto(orderId, order.getCustomerId(), orderToSave.getOrderStatus(), orderProductList);
             orderService.addOrder(dto);
             return ResponseEntity.ok().build();
         });
@@ -88,7 +80,7 @@ public class OrderController {
 
     @PostMapping("/submit/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<String> submitOrder(@PathVariable String id) {
+    public ResponseEntity<String> submitOrder(@PathVariable UUID id) {
         DaprClient client = new DaprClientBuilder().build();
         try {
             var order = orderService.getOrder(id);
@@ -97,12 +89,6 @@ public class OrderController {
                 return ResponseEntity.notFound().build();
             }
             order.get().setOrderStatus("Reserved");
-
-
-//            var customer = new Customer(order.get().getCustomerId(), cloudEvent.getData().getName(),
-//                    cloudEvent.getData().getEmail(), cloudEvent.getData().getAddress());
-//            orderService.addCustomer(customer);
-
             var res = new PaymentDto(order.get().getOrderId(), order.get().getCustomerId(), order.get().getOrderStatus());
             client.publishEvent(pubSubName, "On_Order_Submit", res).block();
             log.info("Order {} submitted", id);
@@ -118,7 +104,7 @@ public class OrderController {
 
     @PostMapping("/add/{orderId}")
     public ResponseEntity<Void> addProductToOrder(@PathVariable String orderId, @RequestBody OrderProductDto orderProductDto) {
-        orderService.addProductToOrder(orderId, orderProductDto);
+        orderService.addProductToOrder(UUID.fromString(orderId), orderProductDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -146,7 +132,7 @@ public class OrderController {
 
     @DeleteMapping(value = "/delete/{orderId}")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<String> deleteOrder(@PathVariable String orderId, CloudEvent<CancelOrderDto> cloudEvent) {
+    public ResponseEntity<String> deleteOrder(@PathVariable UUID orderId, CloudEvent<CancelOrderDto> cloudEvent) {
         DaprClient client = new DaprClientBuilder().build();
         try {
                var order = orderService.getOrder(orderId);
@@ -174,7 +160,7 @@ public class OrderController {
     @PostMapping(value = "/paymentFailed")
     @ResponseStatus(HttpStatus.OK)
     @Topic(name = "On_Payment_Failed", pubsubName = pubSubName)
-    public Mono<ResponseEntity<String>> paymentFailed(@RequestBody CloudEvent<PaymentDto> cloudEvent) {
+    public Mono<ResponseEntity<?>> paymentFailed(@RequestBody CloudEvent<PaymentDto> cloudEvent) {
         return Mono.fromSupplier(() -> {
             try {
                 DaprClient client = new DaprClientBuilder().build();

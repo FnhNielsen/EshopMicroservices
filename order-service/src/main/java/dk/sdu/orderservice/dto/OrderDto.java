@@ -5,12 +5,13 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderDto {
-    public String orderId;
+    public UUID orderId;
     public String customerId;
     public String orderStatus;
     public List<OrderProduct> orderProducts;

@@ -9,6 +9,7 @@ import org.hibernate.FetchMode;
 import org.hibernate.annotations.Fetch;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -19,9 +20,10 @@ import java.util.List;
 @Table(name = "Orders")
 public class Order {
     @Id
-    public String orderId;
-    public String customerId;
-    public String orderStatus;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID orderId;
+    private String customerId;
+    private String orderStatus;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "orderId")
-    public List<OrderProduct> orderProducts;
+    private List<OrderProduct> orderProducts;
 }
