@@ -118,17 +118,19 @@ public class OrderController {
     @PostMapping(value = "/payed")
     @ResponseStatus(HttpStatus.OK)
     @Topic(name = "On_Order_Shipped", pubsubName = pubSubName)
-    public Mono<ResponseEntity<String>> orderPayed(CloudEvent<PaymentDto> cloudEvent) {
+    public Mono<ResponseEntity<String>> orderPayed(@RequestBody CloudEvent<PaymentDto> cloudEvent) {
         return Mono.fromSupplier(() -> {
             try {
-                var order = orderService.getOrder(cloudEvent.getData().getOrderId());
+                var event = cloudEvent.getData();
+                var orderId = event.getOrderId();
+                var order = orderService.getOrder(orderId);
                 if (order.isEmpty()) {
-                    log.error("Order with ID {} not found", cloudEvent.getData().getOrderId());
+                    log.error("Order with ID {} not found", orderId);
                     return ResponseEntity.notFound().build();
                 }
                 order.get().setOrderStatus("Shipped");
                 orderService.updateOrderStatus(order.get());
-                log.info("Order {} payed", cloudEvent.getData().getOrderId());
+                log.info("Order {} shipped", orderId);
                 return ResponseEntity.ok().build();
             } catch (Exception e) {
                 log.error("Unexpected error: {}", e.getMessage());

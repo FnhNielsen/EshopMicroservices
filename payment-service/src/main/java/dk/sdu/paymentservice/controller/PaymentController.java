@@ -25,28 +25,29 @@ public class PaymentController {
     @PostMapping(value = "/pay")
     @ResponseStatus(HttpStatus.OK)
     @Topic(name = "On_Order_Submit", pubsubName = pubSubName)
-    public Mono<ResponseEntity<String>>handlePayment(@RequestBody CloudEvent<PaymentDto> cloudEvent) {
-     return Mono.fromCallable(() -> {
-         try {
-             DaprClient client = new DaprClientBuilder().build();
-             log.info("Received Order: {}, from Customer: {}", cloudEvent.getData().getOrderId(), cloudEvent.getData().getCustomerId());
-             int tmp = (int) ( Math.random() * 2 + 1); // will return either 1 or 2
-             var event = cloudEvent.getData();
-             if (tmp == 1) {
-                 client.publishEvent(pubSubName, "On_Payment_Received", cloudEvent.getData()).block();
-                 log.info("PAYMENT received for Customer: {}, with Order: {}",
-                         cloudEvent.getData().getCustomerId(), cloudEvent.getData().getOrderId());
-                 return ResponseEntity.ok().body("Payment received");
-             }
-             client.publishEvent(pubSubName, "On_Payment_Failed", cloudEvent.getData()).block();
-             log.info("Payment failed for Customer: {}, with Order: {}",
-                     cloudEvent.getData().getCustomerId(), cloudEvent.getData().getOrderId());
-             return ResponseEntity.ok().body("Payment failed");
-         } catch (Exception e) {
-             log.error("Error occurred while publishing event", e);
-             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while publishing event");
-         }
-     });
+    public Mono<ResponseEntity<String>> handlePayment(@RequestBody CloudEvent<PaymentDto> cloudEvent) {
+        return Mono.fromCallable(() -> {
+            try {
+                DaprClient client = new DaprClientBuilder().build();
+                log.info("Received Order: {}, from Customer: {}", cloudEvent.getData().getCustomerId(), cloudEvent.getData().getOrderId());
+                int tmp = (int) (Math.random() * 2 + 1); // will return either 1 or 2
+                var event = cloudEvent.getData();
+                if(tmp == 1) {
+                    client.publishEvent(pubSubName, "On_Payment_Received", event).block();
+                    log.info("PAYMENT received for Customer: {}, with Order: {}",
+                            cloudEvent.getData().getCustomerId(), cloudEvent.getData().getOrderId());
+                    return ResponseEntity.ok().body("Payment received");
+                }
+
+                client.publishEvent(pubSubName, "On_Payment_Failed", cloudEvent.getData()).block();
+                log.info("Payment failed for Customer: {}, with Order: {}",
+                        cloudEvent.getData().getCustomerId(), cloudEvent.getData().getOrderId());
+                return ResponseEntity.ok().body("Payment failed");
+            } catch (Exception e) {
+                log.error("Error occurred while publishing event", e);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while publishing event");
+            }
+        });
     }
 
     @PostMapping(value = "/ship")
