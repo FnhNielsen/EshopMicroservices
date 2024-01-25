@@ -6,3 +6,4 @@
 ### Discovery Server
 - Remember to change the port adresses in the different services to the name of the services e.g. 
   localhost/8080 -> inventory-service
+- 
